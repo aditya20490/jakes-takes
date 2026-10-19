@@ -16,7 +16,8 @@ export default function ArchiveClient({ videos, topics }) {
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     return videos
-      .filter((v) => topic === 'All' || v.topic === topic)
+      // "All" shows regular videos only. Livestreams appear under their own tab.
+      .filter((v) => (topic === 'All' ? v.topic !== 'Livestreams' : v.topic === topic))
       .filter((v) => !q || v.title.toLowerCase().includes(q) || v.topic.toLowerCase().includes(q))
       .sort((a, b) => b.date.localeCompare(a.date));
   }, [videos, query, topic]);
