@@ -2,6 +2,7 @@ import '../videos.css';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getVideos } from '../../../lib/youtube';
+import Community from './Community';
 
 export const revalidate = 3600;
 
@@ -46,10 +47,7 @@ export default async function VideoPage({ params }) {
             Watch on YouTube
           </a>
         </p>
-        <section className="soon">
-          <h2>Ratings and comments</h2>
-          <p className="muted">Coming in a later phase. Nothing is live yet.</p>
-        </section>
+        <Community videoId={video.id} />
       </main>
       <footer className="footer">
         <p>Unofficial fan-made project. Not affiliated with or endorsed by Jake&apos;s Takes.</p>
