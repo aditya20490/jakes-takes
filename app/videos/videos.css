@@ -61,3 +61,4 @@
   .vcard, .vthumb img { transition: none; }
   .vcard:hover { transform: none; }
 }
+.vtitle { font-size: 1.05rem; font-weight: 600; line-height: 1.35; margin-bottom: 8px; }
