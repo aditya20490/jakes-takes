@@ -1,16 +1,19 @@
 import '../videos.css';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { videos } from '../../../data/videos';
+import { getVideos } from '../../../lib/youtube';
 
-export const dynamicParams = false;
+export const revalidate = 3600;
 
-export function generateStaticParams() {
-  return videos.map((v) => ({ id: v.id }));
+function formatDate(iso) {
+  return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC',
+  });
 }
 
 export default async function VideoPage({ params }) {
   const { id } = await params;
+  const { videos } = await getVideos();
   const video = videos.find((v) => v.id === id);
   if (!video) notFound();
 
@@ -35,6 +38,10 @@ export default async function VideoPage({ params }) {
           />
         </div>
         <p className="meta">
+          {formatDate(video.date)}
+          {video.views ? ` · ${video.views.toLocaleString('en-US')} views` : ''}
+        </p>
+        <p style={{ marginTop: 16 }}>
           <a className="btn ghost" href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank" rel="noopener noreferrer">
             Watch on YouTube
           </a>
