@@ -26,7 +26,7 @@ export default async function VideoPage({ params }) {
           <Link href="/videos">All videos</Link>
         </nav>
       </header>
-      <main className="page">
+      <main className="page narrow">
         <p className="eyebrow">{video.topic}</p>
         <h1 className="page-title small">{video.title}</h1>
         <div className="player">
