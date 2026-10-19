@@ -1,13 +1,14 @@
 .page { max-width: 1200px; margin: 0 auto; padding: 120px 20px 80px; min-height: 80vh; }
+.page .eyebrow { margin-bottom: 0; }
 .page-title {
   font-family: var(--font-display);
   font-weight: 400;
   font-size: clamp(2.8rem, 9vw, 5.5rem);
-  line-height: 1;
+  line-height: 0.95;
   text-transform: uppercase;
   margin-bottom: 28px;
 }
-.page-title.small { font-size: clamp(2rem, 6vw, 3.4rem); text-transform: none; letter-spacing: 0.02em; margin-bottom: 24px; }
+.page-title.small { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; text-transform: none; letter-spacing: 0.02em; margin-bottom: 24px; }
 
 .controls { display: grid; gap: 16px; margin-bottom: 20px; }
 .search {
@@ -45,6 +46,7 @@
 .vcard:hover .vthumb img { filter: none; }
 .vbody { padding: 16px 18px 20px; }
 .vbody h2 { font-size: 1.05rem; font-weight: 600; line-height: 1.35; margin-bottom: 8px; }
+.vtitle { font-size: 1.05rem; font-weight: 600; line-height: 1.35; margin-bottom: 8px; }
 .meta { color: var(--grey); font-size: 0.82rem; }
 
 .player { aspect-ratio: 16 / 9; background: #000; border: 1px solid var(--line); margin-bottom: 20px; }
@@ -61,4 +63,3 @@
   .vcard, .vthumb img { transition: none; }
   .vcard:hover { transform: none; }
 }
-.vtitle { font-size: 1.05rem; font-weight: 600; line-height: 1.35; margin-bottom: 8px; }
