@@ -6,6 +6,24 @@ import { getVideos } from '../../../lib/youtube';
 
 export const dynamic = 'force-dynamic';
 
+// Cloudflare Turnstile check. If TURNSTILE_SECRET_KEY is not set, this step is skipped.
+async function verifyTurnstile(token) {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return true;
+  if (typeof token !== 'string' || !token || token.length > 2048) return false;
+  try {
+    const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ secret, response: token }),
+    });
+    const data = await res.json();
+    return data.success === true;
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(request) {
   const videoId = new URL(request.url).searchParams.get('videoId') || '';
   if (!VIDEO_RE.test(videoId)) return json({ error: 'Invalid video.' }, 400);
@@ -35,7 +53,7 @@ export async function POST(request) {
   body = body || {};
 
   // Hidden honeypot field. Real people never fill it. Bots do. Pretend it worked.
-  if (body.website) return json({ ok: true, status: 'pending' });
+  if (body.website) return json({ ok: true, status: 'approved' });
 
   const { videoId, deviceId } = body;
   if (typeof videoId !== 'string' || !VIDEO_RE.test(videoId)) return json({ error: 'Invalid video.' }, 400);
@@ -53,6 +71,10 @@ export async function POST(request) {
   if (hasLink(name) || hasLink(text)) return json({ error: 'Links are not allowed in comments.' }, 400);
   if (hasSpam(text) || hasSpam(name)) return json({ error: 'That looks like spam. Please write a normal comment.' }, 400);
   if (containsBlocked(name) || containsBlocked(text)) return json({ error: 'Please keep it respectful and remove blocked words.' }, 400);
+
+  if (!(await verifyTurnstile(body.turnstileToken))) {
+    return json({ error: 'Verification failed. Please wait a moment and try again.' }, 400);
+  }
 
   const db = getDb();
   if (!db) return json({ error: 'Not configured.' }, 503);
@@ -88,8 +110,9 @@ export async function POST(request) {
       .limit(1);
     if (dup && dup.length) return json({ error: 'That comment was already posted.' }, 409);
 
-    // New comments wait for approval unless you set COMMENTS_AUTO_APPROVE=true in Vercel.
-    const status = process.env.COMMENTS_AUTO_APPROVE === 'true' ? 'approved' : 'pending';
+    // Comments go live immediately. To switch back to approval, set
+    // COMMENTS_AUTO_APPROVE=false in Vercel.
+    const status = process.env.COMMENTS_AUTO_APPROVE === 'false' ? 'pending' : 'approved';
 
     const { error } = await db.from('comments').insert({
       video_id: videoId,
