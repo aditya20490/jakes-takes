@@ -18,6 +18,7 @@ export default async function Home() {
 
   return (
     <>
+      <a href="#top" className="skip">Skip to content</a>
       <header className="nav">
         <a href="#top" className="logo">JAKE&apos;S TAKES</a>
         <nav className="nav-links" aria-label="Main">
@@ -121,12 +122,16 @@ export default async function Home() {
           <p className="eyebrow">Community</p>
           <h2>Rate and discuss</h2>
           <p className="muted wide">
-            Ratings (1 to 10) and comments on each video are coming in a later
-            phase. Nothing is live yet.
+            Every video and livestream replay has a 1 to 10 rating and its own
+            comment section. Pick one, share what you thought, and keep it
+            respectful.
           </p>
-          <a className="btn" href={channelUrl} target="_blank" rel="noopener noreferrer">
-            Join on YouTube
-          </a>
+          <div className="hero-actions">
+            <Link className="btn" href="/videos">Pick a video</Link>
+            <a className="btn ghost" href={channelUrl} target="_blank" rel="noopener noreferrer">
+              Join on YouTube
+            </a>
+          </div>
         </section>
       </main>
 
