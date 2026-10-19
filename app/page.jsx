@@ -1,13 +1,28 @@
-import { channelUrl, featuredVideos, pillars, galleryItems } from '../data/site';
+import './videos/videos.css';
+import Link from 'next/link';
+import { channelUrl, pillars, galleryItems } from '../data/site';
+import { getVideos } from '../lib/youtube';
 
-export default function Home() {
+export const revalidate = 3600;
+
+function formatDate(iso) {
+  return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC',
+  });
+}
+
+export default async function Home() {
+  const { videos } = await getVideos();
+  // Latest 3 regular videos (livestreams live in their own archive tab)
+  const featured = videos.filter((v) => v.topic !== 'Livestreams').slice(0, 3);
+
   return (
     <>
       <header className="nav">
         <a href="#top" className="logo">JAKE&apos;S TAKES</a>
         <nav className="nav-links" aria-label="Main">
           <a href="#philosophy">Story</a>
-          <a href="#videos">Videos</a>
+          <Link href="/videos">Videos</Link>
           <a href="#gallery">Gallery</a>
           <a href="#community">Community</a>
         </nav>
@@ -25,7 +40,7 @@ export default function Home() {
               <a className="btn" href={channelUrl} target="_blank" rel="noopener noreferrer">
                 Watch on YouTube
               </a>
-              <a className="btn ghost" href="#videos">Browse videos</a>
+              <Link className="btn ghost" href="/videos">Browse videos</Link>
             </div>
           </div>
         </section>
@@ -49,27 +64,44 @@ export default function Home() {
 
         <section id="videos" className="section alt">
           <p className="eyebrow">Archive</p>
-          <h2>Featured videos</h2>
+          <h2>Latest videos</h2>
           <p className="muted wide">
-            Placeholder cards. The full searchable archive with real
-            thumbnails comes next.
+            Fresh from the channel. Open the archive to search by topic or
+            find livestream replays.
           </p>
-          <div className="grid3">
-            {featuredVideos.map((v) => (
-              <article key={v.id} className="card video">
-                <div className="thumb" aria-hidden="true">
-                  <span>▶</span>
-                </div>
-                <div className="video-body">
-                  <span className="tag">{v.topic}</span>
-                  <h3>{v.title}</h3>
-                </div>
-              </article>
-            ))}
+
+          {featured.length > 0 ? (
+            <div className="vgrid home-vgrid">
+              {featured.map((v) => (
+                <Link key={v.id} href={`/videos/${v.id}`} className="vcard">
+                  <div className="vthumb">
+                    <img
+                      src={`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`}
+                      alt=""
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="vbody">
+                    <span className="tag">{v.topic}</span>
+                    <h3 className="vtitle">{v.title}</h3>
+                    <p className="meta">
+                      {formatDate(v.date)}
+                      {v.views ? ` · ${v.views.toLocaleString('en-US')} views` : ''}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="muted">Videos will appear here soon.</p>
+          )}
+
+          <div className="hero-actions" style={{ marginTop: 32 }}>
+            <Link className="btn" href="/videos">Open full archive</Link>
+            <a className="btn ghost" href={channelUrl} target="_blank" rel="noopener noreferrer">
+              Channel on YouTube
+            </a>
           </div>
-          <a className="btn ghost" href={channelUrl} target="_blank" rel="noopener noreferrer">
-            All videos on YouTube
-          </a>
         </section>
 
         <section id="gallery" className="section">
