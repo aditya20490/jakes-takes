@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './community.css';
 
+const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
 let memoryId = null;
 
 function makeId() {
@@ -37,7 +38,11 @@ export default function Community({ videoId }) {
   const [deviceId, setDeviceId] = useState(null);
   const [summary, setSummary] = useState(null);
   const [myScore, setMyScore] = useState(null);
-  const [rateMsg, setRateMsg] = useState('');
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [rateMsg, setRateMsg] = useState(null);
+
   const [comments, setComments] = useState(null);
   const [name, setName] = useState('');
   const [text, setText] = useState('');
@@ -45,6 +50,11 @@ export default function Community({ videoId }) {
   const [sending, setSending] = useState(false);
   const [formMsg, setFormMsg] = useState(null);
   const [reported, setReported] = useState({});
+  const [token, setToken] = useState('');
+
+  const rateRef = useRef(null);
+  const tsRef = useRef(null);
+  const tsId = useRef(null);
 
   useEffect(() => {
     setDeviceId(getDeviceId());
@@ -66,25 +76,115 @@ export default function Community({ videoId }) {
       .catch(() => setComments([]));
   }, [videoId]);
 
-  async function rate(score) {
-    setRateMsg('');
+  // Close the number picker when tapping anywhere else, or pressing Esc.
+  useEffect(() => {
+    if (!open) return;
+    function close() {
+      setOpen(false);
+      setPending(null);
+    }
+    function onPointer(e) {
+      if (rateRef.current && !rateRef.current.contains(e.target)) close();
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') close();
+    }
+    document.addEventListener('pointerdown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  // Cloudflare Turnstile (only active when the site key is set)
+  useEffect(() => {
+    if (!SITE_KEY) return;
+    let cancelled = false;
+
+    function mount() {
+      if (cancelled || !tsRef.current || !window.turnstile || tsId.current !== null) return;
+      tsId.current = window.turnstile.render(tsRef.current, {
+        sitekey: SITE_KEY,
+        theme: 'dark',
+        callback: (t) => setToken(t),
+        'expired-callback': () => setToken(''),
+        'error-callback': () => setToken(''),
+      });
+    }
+
+    if (window.turnstile) {
+      mount();
+    } else {
+      let s = document.getElementById('cf-turnstile-script');
+      if (!s) {
+        s = document.createElement('script');
+        s.id = 'cf-turnstile-script';
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        s.async = true;
+        s.defer = true;
+        document.head.appendChild(s);
+      }
+      s.addEventListener('load', mount);
+    }
+
+    return () => {
+      cancelled = true;
+      if (tsId.current !== null && window.turnstile) {
+        try { window.turnstile.remove(tsId.current); } catch {}
+      }
+      tsId.current = null;
+    };
+  }, []);
+
+  function resetTurnstile() {
+    setToken('');
+    try {
+      if (window.turnstile && tsId.current !== null) window.turnstile.reset(tsId.current);
+    } catch {}
+  }
+
+  function toggleRate() {
+    if (open) {
+      setOpen(false);
+      setPending(null);
+    } else {
+      setPending(myScore);
+      setRateMsg(null);
+      setOpen(true);
+    }
+  }
+
+  async function done() {
+    if (!pending) return;
+    if (pending === myScore) {
+      setOpen(false);
+      setPending(null);
+      return;
+    }
+    setSaving(true);
+    setRateMsg(null);
     try {
       const res = await fetch('/api/ratings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ videoId, score, deviceId }),
+        body: JSON.stringify({ videoId, score: pending, deviceId }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setRateMsg(data.error || 'Something went wrong.');
-        return;
+        setRateMsg({ type: 'error', text: data.error || 'Something went wrong.' });
+      } else {
+        setSummary({ average: data.average, total: data.total });
+        setMyScore(pending);
+        try { localStorage.setItem(`jt_rating_${videoId}`, String(pending)); } catch {}
+        setOpen(false);
+        setPending(null);
+        setRateMsg({ type: 'ok', text: 'Thanks! Your rating was saved.' });
       }
-      setSummary({ average: data.average, total: data.total });
-      setMyScore(score);
-      try { localStorage.setItem(`jt_rating_${videoId}`, String(score)); } catch {}
     } catch {
-      setRateMsg('Network error. Please try again.');
+      setRateMsg({ type: 'error', text: 'Network error. Please try again.' });
     }
+    setSaving(false);
   }
 
   async function submit(e) {
@@ -95,7 +195,7 @@ export default function Community({ videoId }) {
       const res = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ videoId, name, body: text, deviceId, website }),
+        body: JSON.stringify({ videoId, name, body: text, deviceId, website, turnstileToken: token }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -115,6 +215,8 @@ export default function Community({ videoId }) {
     } catch {
       setFormMsg({ type: 'error', text: 'Network error. Please try again.' });
     }
+    // A Turnstile token works only once, so always get a fresh one.
+    resetTurnstile();
     setSending(false);
   }
 
@@ -129,30 +231,56 @@ export default function Community({ videoId }) {
     } catch {}
   }
 
+  const needsToken = Boolean(SITE_KEY) && !token;
+
   return (
     <section className="community">
-      <h2>Rate this</h2>
+      <h2>Rating</h2>
       <p className="avg">
         {summary && summary.total > 0
           ? `★ ${summary.average} / 10 · ${summary.total} ${summary.total === 1 ? 'rating' : 'ratings'}`
           : 'No ratings yet. Be the first.'}
       </p>
-      <div className="scores" role="group" aria-label="Rate from 1 to 10">
-        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-          <button
-            key={n}
-            type="button"
-            className={`score ${myScore === n ? 'active' : ''}`}
-            aria-pressed={myScore === n}
-            disabled={!deviceId}
-            onClick={() => rate(n)}
-          >
-            {n}
-          </button>
-        ))}
+
+      <div className="rate" ref={rateRef}>
+        <button
+          type="button"
+          className="btn ghost"
+          aria-expanded={open}
+          disabled={!deviceId}
+          onClick={toggleRate}
+        >
+          {myScore ? `Your rating: ${myScore}/10 · Change` : 'Rate this'}
+        </button>
+
+        {open && (
+          <div className="rate-panel" role="group" aria-label="Rate from 1 to 10">
+            <div className="scores">
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={`score ${pending === n ? 'active' : ''}`}
+                  aria-pressed={pending === n}
+                  onClick={() => setPending(n)}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            <div className="rate-actions">
+              <button type="button" className="btn" disabled={!pending || saving} onClick={done}>
+                {saving ? 'Saving...' : 'Done'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-      {myScore && <p className="note">You rated this {myScore}/10. Tap another number to change it.</p>}
-      {rateMsg && <p className="msg error" role="alert">{rateMsg}</p>}
+      {rateMsg && (
+        <p className={`msg ${rateMsg.type}`} role={rateMsg.type === 'error' ? 'alert' : 'status'}>
+          {rateMsg.text}
+        </p>
+      )}
 
       <h2 className="comments-title">Comments</h2>
       <form className="cform" onSubmit={submit}>
@@ -184,9 +312,12 @@ export default function Community({ videoId }) {
             <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
           </label>
         </div>
+        {SITE_KEY && <div ref={tsRef} />}
         <div className="cform-row">
-          <span className="note">{text.length}/500</span>
-          <button className="btn" type="submit" disabled={sending || !deviceId}>
+          <span className="note">
+            {needsToken ? 'Verifying you are human...' : `${text.length}/500`}
+          </span>
+          <button className="btn" type="submit" disabled={sending || !deviceId || needsToken}>
             {sending ? 'Sending...' : 'Post comment'}
           </button>
         </div>
@@ -195,7 +326,7 @@ export default function Community({ videoId }) {
             {formMsg.text}
           </p>
         )}
-        <p className="note">Comments are reviewed before they appear. No links, please keep it respectful.</p>
+        <p className="note">No links, please keep it respectful. You can report any comment.</p>
       </form>
 
       {comments === null ? (
