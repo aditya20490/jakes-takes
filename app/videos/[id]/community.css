@@ -1,0 +1,51 @@
+.community { margin-top: 56px; padding: 28px 20px; background: var(--charcoal); border: 1px solid var(--line); }
+.community h2 { font-family: var(--font-display); font-weight: 400; font-size: 1.9rem; text-transform: uppercase; margin-bottom: 8px; }
+.comments-title { margin-top: 40px; }
+.avg { font-size: 1.05rem; margin-bottom: 16px; }
+.scores { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.score {
+  padding: 14px 0;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.score:hover:not(:disabled) { border-color: var(--text); }
+.score.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+.score:focus-visible, .link:focus-visible, .field:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.note { color: var(--grey); font-size: 0.8rem; margin-top: 10px; }
+.msg { margin-top: 12px; font-size: 0.9rem; }
+.msg.error { color: #e0a0a0; }
+.msg.ok { color: #b9d4b9; }
+
+.cform { display: grid; gap: 12px; margin-bottom: 28px; }
+.field {
+  width: 100%;
+  padding: 13px 14px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+}
+textarea.field { resize: vertical; }
+.cform-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.cform-row .note { margin-top: 0; }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.clist { list-style: none; display: grid; gap: 14px; }
+.comment { padding: 16px; background: var(--bg); border: 1px solid var(--line); }
+.comment-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.comment p { overflow-wrap: anywhere; }
+.link { margin-top: 8px; background: none; border: 0; color: var(--grey); font-family: inherit; font-size: 0.78rem; cursor: pointer; text-decoration: underline; }
+.link:hover:not(:disabled) { color: var(--text); }
+.link:disabled { cursor: default; text-decoration: none; }
+
+@media (min-width: 760px) {
+  .community { padding: 40px; }
+  .scores { grid-template-columns: repeat(10, 1fr); }
+}
