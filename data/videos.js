@@ -1,11 +1,16 @@
-// Add one entry per video. Newest-first order is handled automatically.
-// id    = the part after "v=" in the YouTube link (or after youtu.be/)
-// topic = Fitness | Looksmaxing | Mindset | Life Advice | Livestreams
-// date  = YYYY-MM-DD    views = optional number
-//
-// Example (remove the // to use):
-// { id: 'PASTE_VIDEO_ID', title: 'Exact video title', topic: 'Fitness', date: '2026-01-15', views: 1200 },
+// Topic rules. These are keyword guesses, so edit them freely.
+// Livestreams are detected automatically, no keywords needed.
+export const topics = ['Livestreams', 'Looksmaxing', 'Fitness', 'Mindset', 'Life Advice', 'General'];
+export const defaultTopic = 'General';
 
-export const topics = ['Fitness', 'Looksmaxing', 'Mindset', 'Life Advice', 'Livestreams'];
+// Checked top to bottom. The first topic with a matching word wins.
+// Each keyword matches the START of a word ("train" matches "training").
+export const topicKeywords = {
+  Looksmaxing: ['looksmax', 'jawline', 'mewing', 'skincare', 'hairline', 'aesthetic', 'attractive'],
+  Fitness: ['workout', 'gym', 'lift', 'train', 'diet', 'meat', 'fruit', 'muscle', 'bulk', 'physique', 'fitness', 'calorie', 'protein', 'gains'],
+  Mindset: ['mindset', 'disciplin', 'goal', 'consisten', 'motivat', 'confiden', 'habit', 'mental'],
+  'Life Advice': ['advice', 'relationship', 'money', 'career', 'lesson', 'truth', 'story'],
+};
 
-export const videos = [];
+// Force one video into a topic: { 'VIDEO_ID': 'Mindset' }
+export const overrides = {};
