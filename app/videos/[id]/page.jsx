@@ -64,9 +64,6 @@ export default async function VideoPage({ params }) {
           </aside>
         </div>
       </main>
-      <footer className="footer">
-        <p>Unofficial fan-made project. Not affiliated with or endorsed by Jake&apos;s Takes.</p>
-      </footer>
     </>
   );
 }
