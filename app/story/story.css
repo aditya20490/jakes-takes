@@ -1,6 +1,5 @@
 .page.story { max-width: 1200px; }
-.story-lead { max-width: 760px; font-size: clamp(1.15rem, 2.6vw, 1.45rem); line-height: 1.55; color: #d5d4d0; margin-bottom: 18px; }
-.story-note { max-width: 760px; font-size: 0.82rem; color: var(--grey); margin-bottom: 40px; }
+.story-lead { max-width: 760px; font-size: clamp(1.15rem, 2.6vw, 1.45rem); line-height: 1.55; color: #d5d4d0; margin-bottom: 24px; }
 
 .theme { display: grid; grid-template-columns: 1fr; gap: 14px 40px; padding: 56px 0; border-top: 1px solid var(--line); }
 .theme-num {
@@ -21,9 +20,17 @@
 .theme-body p { max-width: 680px; color: #c9c8c4; margin-bottom: 14px; }
 @media (min-width: 760px) { .theme { grid-template-columns: 170px 1fr; padding: 80px 0; } }
 
-/* Quotes: a line draws down beside them as they appear */
-.quote { position: relative; margin: 26px 0 0; padding-left: 22px; max-width: 680px; }
-.quote::before {
+/* Big statements: a line draws down beside them as they appear */
+.pull {
+  position: relative;
+  margin: 28px 0 0;
+  padding-left: 22px;
+  max-width: 680px;
+  font-size: clamp(1.25rem, 3vw, 1.6rem);
+  line-height: 1.4;
+  color: var(--text);
+}
+.pull::before {
   content: '';
   position: absolute;
   left: 0; top: 2px; bottom: 2px;
@@ -33,17 +40,11 @@
   transform-origin: top;
   transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s;
 }
-.reveal.in .quote::before { transform: scaleY(1); }
-.quote p { font-size: clamp(1.2rem, 3vw, 1.55rem); line-height: 1.4; color: var(--text); }
-.quote figcaption {
-  margin-top: 10px;
-  font-size: 0.74rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--grey);
-}
-.quote.big { padding-left: 28px; margin: 0 0 28px; max-width: 900px; }
-.quote.big p {
+.reveal.in .pull::before { transform: scaleY(1); }
+.pull.big {
+  margin: 0 0 28px;
+  padding-left: 28px;
+  max-width: 900px;
   font-family: var(--font-display);
   font-size: clamp(2.4rem, 8vw, 5rem);
   line-height: 1;
@@ -51,35 +52,55 @@
   letter-spacing: 0.02em;
 }
 
-/* Sign-off: the outlined letters fill in */
-.signoff { text-align: center; padding: 90px 0 30px; border-top: 1px solid var(--line); }
+/* "Don't quit." with red fire rising behind it, forever */
+.fire {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  text-align: center;
+  padding: clamp(120px, 24vw, 240px) var(--gutter) clamp(100px, 18vw, 190px);
+  border-top: 1px solid var(--line);
+  background: linear-gradient(to top, rgba(120, 14, 8, 0.5), rgba(7, 8, 11, 0) 70%);
+}
+.fire::before {
+  content: '';
+  position: absolute;
+  left: -10%; right: -10%; bottom: -35%;
+  height: 90%;
+  z-index: -2;
+  background: radial-gradient(ellipse at 50% 100%, rgba(255, 72, 20, 0.6), rgba(190, 22, 10, 0.28) 42%, transparent 72%);
+  animation: flicker 2.6s ease-in-out infinite alternate;
+}
+.fire-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+.fire-content { position: relative; }
 .signoff-word {
   font-family: var(--font-display);
-  font-size: clamp(3.4rem, 15vw, 10rem);
+  font-size: clamp(3.6rem, 16vw, 11rem);
   line-height: 0.95;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(255,255,255,0.45);
+  -webkit-text-stroke: 1px rgba(255,255,255,0.5);
   background: linear-gradient(var(--text), var(--text)) no-repeat 0 0 / 0% 100%;
   -webkit-background-clip: text;
   background-clip: text;
+  filter: drop-shadow(0 0 26px rgba(255, 64, 24, 0.55));
   transition: background-size 1.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s;
 }
 .reveal.in .signoff-word { background-size: 100% 100%; }
-.signoff .muted { margin-top: 12px; }
+.fire-sub { margin-top: 14px; color: #e3d9d4; }
+.fire-actions { margin-top: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 
-.about-note {
-  max-width: 760px;
-  margin-top: 48px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
-  font-size: 0.82rem;
-  color: var(--grey);
+@keyframes flicker {
+  0% { opacity: 0.7; transform: scale(1); }
+  30% { opacity: 1; transform: scale(1.05); }
+  55% { opacity: 0.8; transform: scale(1.01); }
+  100% { opacity: 0.95; transform: scale(1.03); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .quote::before, .signoff-word { transition: none; }
-  .quote::before { transform: scaleY(1); }
+  .pull::before, .signoff-word { transition: none; }
+  .pull::before { transform: scaleY(1); }
   .signoff-word { background-size: 100% 100%; }
+  .fire::before { animation: none; }
 }
