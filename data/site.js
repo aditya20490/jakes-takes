@@ -1,10 +1,12 @@
 export const channelUrl = 'https://youtube.com/@jakestakes3228';
+export const instagramUrl = 'https://www.instagram.com/jacob_kadel';
 
-export const pillars = [
-  { title: 'Fitness', text: 'Placeholder. To be written with Jake\'s own words.' },
-  { title: 'Mindset', text: 'Placeholder. To be written with Jake\'s own words.' },
-  { title: 'Discipline', text: 'Placeholder. To be written with Jake\'s own words.' },
+// Every social link shown in the footer. Delete a line to hide that link.
+// TikTok: add this line once you have his real profile link (it looks like tiktok.com/@username):
+//   { name: 'TikTok', url: 'https://www.tiktok.com/@username' },
+export const socials = [
+  { name: 'YouTube', url: channelUrl },
+  { name: 'Instagram', url: instagramUrl },
+  { name: 'X', url: 'https://x.com/jacob_kadel' },
+  { name: 'Discord', url: 'https://discord.com/invite/SbahDfVeQ' },
 ];
-
-// PLACEHOLDERS. Real photos get added once you have permission.
-export const galleryItems = [1, 2, 3, 4, 5, 6];
