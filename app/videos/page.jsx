@@ -1,7 +1,7 @@
 import './videos.css';
 import Link from 'next/link';
 import { topics } from '../../data/videos';
-import { getVideos } from '../../lib/youtube';
+import { getVideos, LIVESTREAM_DAYS } from '../../lib/youtube';
 import ArchiveClient from './ArchiveClient';
 
 export const revalidate = 3600;
@@ -12,7 +12,8 @@ export const metadata = {
 
 export default async function VideosPage() {
   const { videos, error } = await getVideos();
-  const shownTopics = topics.filter((t) => videos.some((v) => v.topic === t));
+  // The Livestreams tab always shows, even when there is no recent stream.
+  const shownTopics = topics.filter((t) => t === 'Livestreams' || videos.some((v) => v.topic === t));
 
   return (
     <>
@@ -28,7 +29,7 @@ export default async function VideosPage() {
         {error ? (
           <p className="muted">The archive is being set up. Please check back soon.</p>
         ) : (
-          <ArchiveClient videos={videos} topics={shownTopics} />
+          <ArchiveClient videos={videos} topics={shownTopics} liveDays={LIVESTREAM_DAYS} />
         )}
       </main>
       <footer className="footer">
