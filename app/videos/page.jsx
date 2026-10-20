@@ -7,7 +7,7 @@ import ArchiveClient from './ArchiveClient';
 export const revalidate = 3600;
 
 export const metadata = {
-  title: "Video Archive | Jake's Takes (Unofficial Fan Site)",
+  title: "Videos | Jake's Takes",
 };
 
 export default async function VideosPage() {
@@ -32,9 +32,6 @@ export default async function VideosPage() {
           <ArchiveClient videos={videos} topics={shownTopics} liveDays={LIVESTREAM_DAYS} />
         )}
       </main>
-      <footer className="footer">
-        <p>Unofficial fan-made project. Not affiliated with or endorsed by Jake&apos;s Takes.</p>
-      </footer>
     </>
   );
 }
