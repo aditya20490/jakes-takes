@@ -4,41 +4,44 @@ import '../motion2.css';
 import './story.css';
 import Link from 'next/link';
 import Reveal from '../../components/Reveal';
+import Fire from '../../components/Fire';
 import { channelUrl } from '../../data/site';
 
 export const metadata = {
-  title: "His Story | Jake's Takes (Unofficial Fan Site)",
-  description: "What Jake stands for, in his own words. An unofficial fan page.",
+  title: "My Story | Jake's Takes",
+  description: 'Raw action, going back to simple, and never quitting.',
 };
 
-// Every quote below is word for word from Jake's own videos. Summaries are written by a fan.
 const themes = [
   {
     n: '01',
     title: 'Raw action',
     body: [
-      "For Jake, better mental health starts with doing. In his Men's Mental Health Month video he says talking things through and checking in on friends is only one piece of the puzzle. Men also need what he calls raw action: the push-ups, the gym, the goal, the hard conversation, the thing you keep putting off.",
-      "He doesn't dismiss talking, but he asks a blunt question: what raw action are you taking? From what he has seen, the men who feel good tend to have a purpose, and dwelling on a problem without looking for a solution rarely makes it better.",
+      "Everyone online says the answer is to talk about your problems and check up on your friends. I'm not against that. You should always check up on your people. But it's one small piece of a massive puzzle, and we're missing the biggest part: raw action.",
+      "Do the push-ups in your room. Start the side business. Text your crush. Have the conversation you've been avoiding. Do the hard thing you know you need to do for your own growth. Then ask yourself honestly: what raw action have you taken? Have you been to the gym this month? Do you have a goal, a purpose?",
+      "The men I see who feel good all have one thing in common, and that's purpose. A solution will always bring you more peace than dwelling in the problem.",
     ],
-    quote: "Raw action is one of the best things for men's mental health.",
+    pull: "Raw action is one of the best things for men's mental health.",
   },
   {
     n: '02',
     title: 'Back to simple',
     body: [
-      "After hours camping near Prescott, Arizona, Jake made a video about getting outside. His argument is that modern life, with its phones and endless optimizing, has pulled people away from something simpler, and that a campfire, a walk and a good view are free and always available.",
-      "His challenge: pick a side quest, like camping for a couple of days, and ask what is actually stopping you.",
+      "I made one of my videos at a campsite in Prescott, Arizona, with the sun going down. Every time I'm out in nature for three hours or more, I get the same realization: this is exactly what we're supposed to be doing as humans.",
+      "We're addicted to our phones, to electronics, to modern-day life, and then we wonder why we're so stressed. Three hundred years ago this was just a typical day: burgers on the fire, the sun going down, zero electronics, maybe throwing around a frisbee. We've gone away from simple.",
+      "So here's my challenge: pick a side quest. Go camping for two days. What is actually stopping you? All you need to do is seek it out, and it's free.",
     ],
-    quote: "…simple is genuinely the answer to all this.",
+    pull: 'The most valuable things on Earth are free.',
   },
   {
     n: '03',
     title: 'Daily discipline',
     body: [
-      "His senior-year day-in-the-life vlog shows the routine behind the content: a workout he streams live, meat-heavy meals, time in the sun, and work sessions on campus, often with another stream on the side. He made one of these vlogs every year of college.",
-      "He doesn't hide that making videos is hard work too. In the Men's Mental Health Month video he says it was his fifth attempt at filming it, and that doing hard things and trying until it works is part of the point.",
+      "I made a day-in-the-life vlog every year of college. In my senior one, the day starts at the gym, where I stream my workout. Then I chill in the sun by the pool while the pump settles, and eat a post-workout meal: four burgers, pickles and some raw honey.",
+      "After that it's off to campus for notebook work and laptop work, usually with a live stream from the middle of campus.",
+      "It isn't always smooth. One of my videos was my fifth attempt at filming it, and I was sweating and stressed. That's part of it. You do hard things, you try, you try again, and then it works.",
     ],
-    quote: "Time to actually win at real life.",
+    pull: 'Time to actually win at real life. No excuses. Got to lock in.',
   },
 ];
 
@@ -59,16 +62,12 @@ export default function StoryPage() {
 
       <main className="page story">
         <Reveal>
-          <p className="eyebrow">The story</p>
-          <h1 className="page-title">What he stands for</h1>
+          <p className="eyebrow">My story</p>
+          <h1 className="page-title">Yo, what is up.</h1>
           <p className="story-lead">
-            Jake is an online fitness coach and YouTuber. He graduated from Arizona State
-            University, made a day-in-the-life vlog every year along the way, streams his
-            workouts, and talks about fitness, mindset and having a purpose. Every video ends
-            the same way: don&apos;t quit.
-          </p>
-          <p className="story-note">
-            Written by a fan from Jake&apos;s public videos. The quotes are his own words.
+            I&apos;m Jake. I&apos;m an online fitness coach and YouTuber. I graduated from Arizona
+            State University, I stream my workouts, and I make videos about fitness, mindset and
+            having a purpose. My videos all end the same way: don&apos;t quit.
           </p>
         </Reveal>
 
@@ -81,38 +80,28 @@ export default function StoryPage() {
                 {t.body.map((p, i) => (
                   <p key={i}>{p}</p>
                 ))}
-                <figure className="quote">
-                  <blockquote><p>&ldquo;{t.quote}&rdquo;</p></blockquote>
-                  <figcaption>Jake, in his videos</figcaption>
-                </figure>
+                <p className="pull">{t.pull}</p>
               </div>
             </article>
           </Reveal>
         ))}
-
-        <Reveal>
-          <section className="signoff">
-            <p className="signoff-word">Don&apos;t quit.</p>
-            <p className="muted">How every one of his videos ends.</p>
-            <p style={{ marginTop: 28 }}>
-              <Link className="btn" href="/videos">Watch the videos</Link>{' '}
-              <a className="btn ghost" href={channelUrl} target="_blank" rel="noopener noreferrer">
-                Channel on YouTube
-              </a>
-            </p>
-          </section>
-        </Reveal>
-
-        <p className="about-note">
-          This is an unofficial fan page and Jake has not reviewed it. These are his personal
-          views from his videos, not professional advice. If you are struggling, talking to a
-          doctor, a counsellor or someone you trust is a good step too.
-        </p>
       </main>
 
-      <footer className="footer">
-        <p>Unofficial fan-made project. Not affiliated with or endorsed by Jake&apos;s Takes.</p>
-      </footer>
+      <section className="fire" aria-labelledby="dont-quit">
+        <Fire />
+        <Reveal>
+          <div className="fire-content">
+            <p className="signoff-word" id="dont-quit">Don&apos;t quit.</p>
+            <p className="fire-sub">Have a great rest of your day. Peace.</p>
+            <p className="fire-actions">
+              <Link className="btn" href="/videos">Watch my videos</Link>
+              <a className="btn ghost" href={channelUrl} target="_blank" rel="noopener noreferrer">
+                My channel on YouTube
+              </a>
+            </p>
+          </div>
+        </Reveal>
+      </section>
     </>
   );
 }
