@@ -44,6 +44,7 @@ export default function Community({ videoId }) {
   const [rateMsg, setRateMsg] = useState(null);
 
   const [comments, setComments] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
   const [name, setName] = useState('');
   const [text, setText] = useState('');
   const [website, setWebsite] = useState('');
@@ -97,10 +98,11 @@ export default function Community({ videoId }) {
     };
   }, [open]);
 
-  // Cloudflare Turnstile (only active when the site key is set)
+  // Cloudflare Turnstile: only loaded while the comment form is open.
   useEffect(() => {
-    if (!SITE_KEY) return;
+    if (!SITE_KEY || !formOpen) return;
     let cancelled = false;
+    let script = null;
 
     function mount() {
       if (cancelled || !tsRef.current || !window.turnstile || tsId.current !== null) return;
@@ -116,32 +118,44 @@ export default function Community({ videoId }) {
     if (window.turnstile) {
       mount();
     } else {
-      let s = document.getElementById('cf-turnstile-script');
-      if (!s) {
-        s = document.createElement('script');
-        s.id = 'cf-turnstile-script';
-        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-        s.async = true;
-        s.defer = true;
-        document.head.appendChild(s);
+      script = document.getElementById('cf-turnstile-script');
+      if (!script) {
+        script = document.createElement('script');
+        script.id = 'cf-turnstile-script';
+        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
       }
-      s.addEventListener('load', mount);
+      script.addEventListener('load', mount);
     }
 
     return () => {
       cancelled = true;
+      if (script) script.removeEventListener('load', mount);
       if (tsId.current !== null && window.turnstile) {
         try { window.turnstile.remove(tsId.current); } catch {}
       }
       tsId.current = null;
     };
-  }, []);
+  }, [formOpen]);
 
   function resetTurnstile() {
     setToken('');
     try {
       if (window.turnstile && tsId.current !== null) window.turnstile.reset(tsId.current);
     } catch {}
+  }
+
+  function openForm() {
+    setFormMsg(null);
+    setToken('');
+    setFormOpen(true);
+  }
+
+  function closeForm() {
+    setFormOpen(false);
+    setToken('');
   }
 
   function toggleRate() {
@@ -200,9 +214,11 @@ export default function Community({ videoId }) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setFormMsg({ type: 'error', text: data.error || 'Something went wrong.' });
+        resetTurnstile(); // a Turnstile token works only once
       } else {
         try { localStorage.setItem('jt_name', name); } catch {}
         setText('');
+        closeForm();
         if (data.status === 'approved') {
           setFormMsg({ type: 'ok', text: 'Posted. Thanks for commenting!' });
           const r = await fetch(`/api/comments?videoId=${videoId}`);
@@ -214,9 +230,8 @@ export default function Community({ videoId }) {
       }
     } catch {
       setFormMsg({ type: 'error', text: 'Network error. Please try again.' });
+      resetTurnstile();
     }
-    // A Turnstile token works only once, so always get a fresh one.
-    resetTurnstile();
     setSending(false);
   }
 
@@ -282,57 +297,72 @@ export default function Community({ videoId }) {
         </p>
       )}
 
-      <h2 className="comments-title">Comments</h2>
-      <form className="cform" onSubmit={submit}>
-        <label className="sr-only" htmlFor="c-name">Your name</label>
-        <input
-          id="c-name"
-          className="field"
-          placeholder="Your name"
-          maxLength={40}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <label className="sr-only" htmlFor="c-body">Your comment</label>
-        <textarea
-          id="c-body"
-          className="field"
-          placeholder="Write a comment..."
-          rows={4}
-          maxLength={500}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          required
-        />
-        {/* Honeypot: hidden from people, bots fill it in. */}
-        <div className="hp" aria-hidden="true">
-          <label>
-            Website
-            <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
-          </label>
-        </div>
-        {SITE_KEY && <div ref={tsRef} />}
-        <div className="cform-row">
-          <span className="note">
-            {needsToken ? 'Verifying you are human...' : `${text.length}/500`}
-          </span>
-          <button className="btn" type="submit" disabled={sending || !deviceId || needsToken}>
-            {sending ? 'Sending...' : 'Post comment'}
-          </button>
-        </div>
-        {formMsg && (
-          <p className={`msg ${formMsg.type}`} role={formMsg.type === 'error' ? 'alert' : 'status'}>
-            {formMsg.text}
-          </p>
-        )}
-        <p className="note">No links, please keep it respectful. You can report any comment.</p>
-      </form>
+      <h2 className="comments-title">
+        Comments{comments && comments.length > 0 ? ` (${comments.length})` : ''}
+      </h2>
+
+      {!formOpen ? (
+        <button type="button" className="btn ghost" disabled={!deviceId} onClick={openForm}>
+          Add a comment
+        </button>
+      ) : (
+        <form className="cform" onSubmit={submit}>
+          <label className="sr-only" htmlFor="c-name">Your name</label>
+          <input
+            id="c-name"
+            className="field"
+            placeholder="Your name"
+            maxLength={40}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus={!name}
+            required
+          />
+          <label className="sr-only" htmlFor="c-body">Your comment</label>
+          <textarea
+            id="c-body"
+            className="field"
+            placeholder="Write a comment..."
+            rows={4}
+            maxLength={500}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            autoFocus={Boolean(name)}
+            required
+          />
+          {/* Honeypot: hidden from people, bots fill it in. */}
+          <div className="hp" aria-hidden="true">
+            <label>
+              Website
+              <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+            </label>
+          </div>
+          {SITE_KEY && <div ref={tsRef} />}
+          <div className="cform-row">
+            <span className="note">
+              {needsToken ? 'Verifying you are human...' : `${text.length}/500`}
+            </span>
+            <span className="cform-buttons">
+              <button className="btn ghost" type="button" onClick={closeForm}>Cancel</button>
+              <button className="btn" type="submit" disabled={sending || !deviceId || needsToken}>
+                {sending ? 'Sending...' : 'Post'}
+              </button>
+            </span>
+          </div>
+          <p className="note">No links, please keep it respectful.</p>
+        </form>
+      )}
+
+      {formMsg && (
+        <p className={`msg ${formMsg.type}`} role={formMsg.type === 'error' ? 'alert' : 'status'}>
+          {formMsg.text}
+        </p>
+      )}
 
       {comments === null ? (
-        <p className="muted">Loading comments...</p>
+        <p className="muted list-gap">Loading comments...</p>
       ) : comments.length === 0 ? (
-        <p className="muted">No comments yet.</p>
+        <p className="muted list-gap">No comments yet.</p>
       ) : (
         <ul className="clist">
           {comments.map((c) => (
