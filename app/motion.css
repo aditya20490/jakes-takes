@@ -1,0 +1,111 @@
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.reveal.in { opacity: 1; transform: none; }
+
+/* Hero: the collage drifts slowly, text rises in one line at a time */
+main .hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(135deg, var(--navy), var(--bg));
+}
+main .hero::before {
+  content: '';
+  position: absolute;
+  inset: -4%;
+  z-index: -2;
+  background: url('/images/hero-collage.jpg') 50% 40% / cover no-repeat;
+  animation: drift 28s ease-in-out infinite alternate;
+  will-change: transform;
+}
+main .hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgba(7,8,11,0.96) 8%, rgba(7,8,11,0.5) 55%, rgba(7,8,11,0.72));
+}
+main .hero-inner { animation: none; }
+main .hero-inner > * { animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+main .hero-inner > :nth-child(1) { animation-delay: 0.1s; }
+main .hero-inner > :nth-child(2) { animation-delay: 0.25s; }
+main .hero-inner > :nth-child(3) { animation-delay: 0.4s; }
+main .hero-inner > :nth-child(4) { animation-delay: 0.55s; }
+
+.scroll-cue {
+  display: none;
+  position: absolute;
+  right: var(--edge);
+  bottom: 40px;
+  width: 1px;
+  height: 64px;
+  background: linear-gradient(var(--text), transparent);
+  transform-origin: top;
+  animation: cue 2.2s ease-in-out infinite;
+}
+@media (min-width: 760px) { .scroll-cue { display: block; } }
+
+/* Moving topic strip */
+.marquee { overflow: hidden; background: var(--bg); border-block: 1px solid var(--line); padding: 18px 0; }
+.marquee-track { display: flex; width: max-content; animation: scroll 40s linear infinite; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+.marquee-group { display: flex; flex: 0 0 auto; }
+.marquee-group span {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.4);
+  padding: 0 26px;
+  white-space: nowrap;
+}
+.marquee-group span::after { content: '•'; margin-left: 52px; color: var(--grey); -webkit-text-stroke: 0; }
+
+/* Cards */
+main .pillar { position: relative; overflow: hidden; transition: border-color 0.2s, transform 0.35s ease; }
+main .pillar::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 2px;
+  background: var(--text);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s ease;
+}
+main .pillar:hover { transform: translateY(-4px); }
+main .pillar:hover::before { transform: scaleX(1); }
+
+/* Gallery placeholders shimmer until real photos are added */
+main .tile {
+  background: linear-gradient(110deg, #12151c 30%, #1b2030 50%, #12151c 70%);
+  background-size: 220% 100%;
+  animation: shimmer 5s ease-in-out infinite;
+  transition: transform 0.4s ease, border-color 0.2s;
+}
+main .tile:nth-child(2n) { animation-delay: 0.6s; }
+main .tile:nth-child(3n) { animation-delay: 1.2s; }
+main .tile:hover { transform: scale(1.02); }
+
+@keyframes drift {
+  from { transform: scale(1) translate3d(0, 0, 0); }
+  to { transform: scale(1.1) translate3d(-1.5%, -1%, 0); }
+}
+@keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes cue {
+  0% { transform: scaleY(0); opacity: 0; }
+  40% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0; }
+}
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  main .hero::before, main .hero-inner > *, .scroll-cue, .marquee-track, main .tile { animation: none; }
+  main .pillar, main .pillar::before, main .tile { transition: none; }
+}
