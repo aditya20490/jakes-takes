@@ -1,5 +1,8 @@
 import './globals.css';
+import './site.css';
 import { Bebas_Neue, Inter } from 'next/font/google';
+import AmbientBackground from '../components/AmbientBackground';
+import Footer from '../components/Footer';
 
 const display = Bebas_Neue({
   weight: '400',
@@ -15,15 +18,18 @@ const body = Inter({
 });
 
 export const metadata = {
-  title: "Jake's Takes (Unofficial Fan Site)",
-  description:
-    "An unofficial fan-made website for Jake's Takes: videos, livestreams, and community.",
+  title: "Jake's Takes",
+  description: 'Videos, livestreams and a community. Fitness, mindset and purpose.',
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
-      <body>{children}</body>
+      <body>
+        <AmbientBackground />
+        {children}
+        <Footer />
+      </body>
     </html>
   );
 }
