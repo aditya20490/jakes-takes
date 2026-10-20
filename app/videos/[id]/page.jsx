@@ -2,7 +2,7 @@ import '../videos.css';
 import './watch.css';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getVideos } from '../../../lib/youtube';
+import { getVideo, LIVESTREAM_DAYS } from '../../../lib/youtube';
 import Community from './Community';
 
 export const revalidate = 3600;
@@ -15,8 +15,9 @@ function formatDate(iso) {
 
 export default async function VideoPage({ params }) {
   const { id } = await params;
-  const { videos } = await getVideos();
-  const video = videos.find((v) => v.id === id);
+  const { video, error } = await getVideo(id);
+  // On a YouTube error, throw so a broken page is never cached.
+  if (error) throw new Error('Could not load this video.');
   if (!video) notFound();
 
   return (
@@ -46,6 +47,11 @@ export default async function VideoPage({ params }) {
               {formatDate(video.date)}
               {video.views ? ` · ${video.views.toLocaleString('en-US')} views` : ''}
             </p>
+            {video.topic === 'Livestreams' && (
+              <p className="meta" style={{ marginTop: 8 }}>
+                Livestreams stay on this site for {LIVESTREAM_DAYS} days, then they and their ratings and comments are removed.
+              </p>
+            )}
             <p style={{ marginTop: 16 }}>
               <a className="btn ghost" href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank" rel="noopener noreferrer">
                 Watch on YouTube
