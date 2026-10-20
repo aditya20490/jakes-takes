@@ -1,15 +1,21 @@
 import './videos/videos.css';
 import './videos/archive.css';
 import './motion.css';
+import './motion2.css';
+import './story/story.css';
 import Link from 'next/link';
-import { channelUrl, pillars, galleryItems } from '../data/site';
-import { getVideos } from '../lib/youtube';
+import { channelUrl, instagramUrl, galleryItems } from '../data/site';
+import { getAllVideos } from '../lib/youtube';
+import { getSubscribers } from '../lib/channel';
 import Reveal from '../components/Reveal';
+import CountUp from '../components/CountUp';
+import ScrollProgress from '../components/ScrollProgress';
 import { CardRating } from '../components/ratings';
 
 export const revalidate = 3600;
 
 const ticker = ['Fitness', 'Looksmaxing', 'Mindset', 'Life Advice', 'Livestreams'];
+const coverTopics = ['Fitness', 'Looksmaxing', 'Mindset', 'Life Advice'];
 
 function formatDate(iso) {
   return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', {
@@ -18,9 +24,29 @@ function formatDate(iso) {
 }
 
 export default async function Home() {
-  const { videos } = await getVideos();
-  // Latest 3 regular videos (livestreams live in their own archive tab)
-  const featured = videos.filter((v) => v.topic !== 'Livestreams').slice(0, 3);
+  const [{ videos: all }, subs] = await Promise.all([getAllVideos(), getSubscribers()]);
+
+  const regular = all.filter((v) => v.topic !== 'Livestreams');
+  const lives = all.filter((v) => v.topic === 'Livestreams');
+  const featured = regular.slice(0, 3);
+  const totalViews = all.reduce((sum, v) => sum + (v.views || 0), 0);
+
+  const stats = [
+    subs ? { label: 'Subscribers', value: subs } : null,
+    { label: 'Videos', value: regular.length },
+    { label: 'Livestreams', value: lives.length },
+    { label: 'Total views', value: totalViews },
+  ].filter((s) => s && s.value > 0);
+
+  // For each topic: how many videos, and the most-watched one
+  const topicCards = coverTopics
+    .map((topic) => {
+      const vs = regular.filter((v) => v.topic === topic);
+      if (!vs.length) return null;
+      const top = vs.reduce((a, b) => ((b.views || 0) > (a.views || 0) ? b : a));
+      return { topic, count: vs.length, top };
+    })
+    .filter(Boolean);
 
   return (
     <>
@@ -28,11 +54,12 @@ export default async function Home() {
         <style>{'.reveal{opacity:1!important;transform:none!important}'}</style>
       </noscript>
 
+      <ScrollProgress />
       <a href="#top" className="skip">Skip to content</a>
       <header className="nav">
         <a href="#top" className="logo">JAKE&apos;S TAKES</a>
         <nav className="nav-links" aria-label="Main">
-          <a href="#philosophy">Story</a>
+          <Link href="/story">Story</Link>
           <Link href="/videos">Videos</Link>
           <a href="#gallery">Gallery</a>
           <a href="#community">Community</a>
@@ -69,25 +96,70 @@ export default async function Home() {
           </div>
         </div>
 
-        <section id="philosophy" className="section">
+        {stats.length > 0 && (
+          <section className="stats-section" aria-label="Channel numbers">
+            <div className="stats">
+              {stats.map((s, i) => (
+                <Reveal key={s.label} delay={i * 100}>
+                  <div className="stat">
+                    <div className="stat-num"><CountUp value={s.value} /></div>
+                    <div className="stat-label">{s.label}</div>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section id="story" className="section alt">
           <Reveal>
-            <p className="eyebrow">The story</p>
-            <h2>What he stands for</h2>
+            <p className="eyebrow">In his own words</p>
+            <figure className="quote big">
+              <blockquote><p>&ldquo;You have full control over your life.&rdquo;</p></blockquote>
+              <figcaption>Jake, in his videos</figcaption>
+            </figure>
             <p className="muted wide">
-              Placeholder. This section will be written with Jake&apos;s verified
-              story and his own words. Nothing here is final.
+              Raw action, going back to simple, and never quitting. Read what he stands for.
+            </p>
+            <Link className="btn" href="/story">Read his story</Link>
+          </Reveal>
+        </section>
+
+        <section id="covers" className="section">
+          <Reveal>
+            <p className="eyebrow">Topics</p>
+            <h2>What he covers</h2>
+            <p className="muted wide">
+              Start with the most-watched video in each topic.
             </p>
           </Reveal>
-          <div className="grid3">
-            {pillars.map((p, i) => (
-              <Reveal key={p.title} delay={i * 120}>
-                <article className="card pillar">
-                  <h3>{p.title}</h3>
-                  <p className="muted">{p.text}</p>
-                </article>
-              </Reveal>
-            ))}
-          </div>
+          {topicCards.length > 0 ? (
+            <div className="tgrid">
+              {topicCards.map((c, i) => (
+                <Reveal key={c.topic} delay={i * 110}>
+                  <Link href={`/videos/${c.top.id}`} className="tcard">
+                    <div className="vthumb">
+                      <img
+                        src={`https://i.ytimg.com/vi/${c.top.id}/hqdefault.jpg`}
+                        alt=""
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="tcard-body">
+                      <div className="tcard-top">
+                        <h3>{c.topic}</h3>
+                        <span className="tcount">{c.count} {c.count === 1 ? 'video' : 'videos'}</span>
+                      </div>
+                      <p className="tbest">Most watched <span className="tarrow" aria-hidden="true">↗</span></p>
+                      <p className="ttitle">{c.top.title}</p>
+                    </div>
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
+          ) : (
+            <p className="muted">Topics will appear here soon.</p>
+          )}
         </section>
 
         <section id="videos" className="section alt">
@@ -148,8 +220,11 @@ export default async function Home() {
             <p className="eyebrow">Gallery</p>
             <h2>The visuals</h2>
             <p className="muted wide">
-              Approved photos will appear here. Placeholders for now.
+              Approved photos will appear here. Until then, follow along on Instagram.
             </p>
+            <a className="btn ghost" href={instagramUrl} target="_blank" rel="noopener noreferrer" style={{ marginBottom: 36 }}>
+              Instagram
+            </a>
           </Reveal>
           <div className="gallery">
             {galleryItems.map((n, i) => (
@@ -181,8 +256,10 @@ export default async function Home() {
 
       <footer className="footer">
         <p>Unofficial fan-made project. Not affiliated with or endorsed by Jake&apos;s Takes.</p>
-        <p>
+        <p className="social-links">
+          <Link href="/story">Story</Link>
           <a href={channelUrl} target="_blank" rel="noopener noreferrer">YouTube</a>
+          <a href={instagramUrl} target="_blank" rel="noopener noreferrer">Instagram</a>
         </p>
       </footer>
     </>
