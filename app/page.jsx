@@ -4,12 +4,15 @@ import './motion.css';
 import './motion2.css';
 import './story/story.css';
 import Link from 'next/link';
-import { channelUrl, instagramUrl, galleryItems } from '../data/site';
+import { channelUrl, instagramUrl } from '../data/site';
+import photos from '../data/photos.generated.json';
 import { getAllVideos } from '../lib/youtube';
 import { getSubscribers } from '../lib/channel';
 import Reveal from '../components/Reveal';
 import CountUp from '../components/CountUp';
 import ScrollProgress from '../components/ScrollProgress';
+import Gallery from '../components/Gallery';
+import PhotoStrip from '../components/PhotoStrip';
 import { CardRating } from '../components/ratings';
 
 export const revalidate = 3600;
@@ -111,24 +114,23 @@ export default async function Home() {
           </section>
         )}
 
+        <PhotoStrip photos={photos} />
+
         <section id="story" className="section alt">
           <Reveal>
-            <p className="eyebrow">In his own words</p>
-            <figure className="quote big">
-              <blockquote><p>&ldquo;You have full control over your life.&rdquo;</p></blockquote>
-              <figcaption>Jake, in his videos</figcaption>
-            </figure>
+            <p className="eyebrow">My story</p>
+            <p className="pull big">You have full control over your life.</p>
             <p className="muted wide">
-              Raw action, going back to simple, and never quitting. Read what he stands for.
+              Raw action, going back to simple, and never quitting. This is what I&apos;m about.
             </p>
-            <Link className="btn" href="/story">Read his story</Link>
+            <Link className="btn" href="/story">Read my story</Link>
           </Reveal>
         </section>
 
         <section id="covers" className="section">
           <Reveal>
             <p className="eyebrow">Topics</p>
-            <h2>What he covers</h2>
+            <h2>What I cover</h2>
             <p className="muted wide">
               Start with the most-watched video in each topic.
             </p>
@@ -220,19 +222,17 @@ export default async function Home() {
             <p className="eyebrow">Gallery</p>
             <h2>The visuals</h2>
             <p className="muted wide">
-              Approved photos will appear here. Until then, follow along on Instagram.
+              {photos.length > 0
+                ? 'Tap a photo to see it full screen.'
+                : 'Photos are coming soon. Follow along on Instagram in the meantime.'}
             </p>
-            <a className="btn ghost" href={instagramUrl} target="_blank" rel="noopener noreferrer" style={{ marginBottom: 36 }}>
-              Instagram
-            </a>
+            {photos.length === 0 && (
+              <a className="btn ghost" href={instagramUrl} target="_blank" rel="noopener noreferrer">
+                Instagram
+              </a>
+            )}
           </Reveal>
-          <div className="gallery">
-            {galleryItems.map((n, i) => (
-              <Reveal key={n} delay={(i % 3) * 100}>
-                <div className="tile" aria-hidden="true" />
-              </Reveal>
-            ))}
-          </div>
+          {photos.length > 0 && <Gallery photos={photos} />}
         </section>
 
         <section id="community" className="section alt">
@@ -253,15 +253,6 @@ export default async function Home() {
           </Reveal>
         </section>
       </main>
-
-      <footer className="footer">
-        <p>Unofficial fan-made project. Not affiliated with or endorsed by Jake&apos;s Takes.</p>
-        <p className="social-links">
-          <Link href="/story">Story</Link>
-          <a href={channelUrl} target="_blank" rel="noopener noreferrer">YouTube</a>
-          <a href={instagramUrl} target="_blank" rel="noopener noreferrer">Instagram</a>
-        </p>
-      </footer>
     </>
   );
 }
