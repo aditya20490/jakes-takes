@@ -2,7 +2,7 @@ import { getDb } from '../../../lib/supabase';
 import { hash, clientIp, sameOrigin, json, DEVICE_RE, VIDEO_RE } from '../../../lib/security';
 import { allow, cleanup } from '../../../lib/ratelimit';
 import { clean, containsBlocked, hasLink, hasSpam } from '../../../lib/moderation';
-import { getVideos } from '../../../lib/youtube';
+import { getVideo } from '../../../lib/youtube';
 
 export const dynamic = 'force-dynamic';
 
@@ -80,9 +80,10 @@ export async function POST(request) {
   if (!db) return json({ error: 'Not configured.' }, 503);
 
   try {
-    const { videos, error: ytError } = await getVideos();
+    // Only real videos from the channel (and livestreams still inside the 6-day window).
+    const { video, error: ytError } = await getVideo(videoId);
     if (ytError) return json({ error: 'Please try again later.' }, 503);
-    if (!videos.some((v) => v.id === videoId)) return json({ error: 'Unknown video.' }, 404);
+    if (!video) return json({ error: 'Comments are closed for this video.' }, 404);
 
     const ip = hash('ip:' + clientIp(request));
     const device = hash('dev:' + deviceId);
