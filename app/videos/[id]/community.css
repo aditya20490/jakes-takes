@@ -1,11 +1,12 @@
-.community { margin-top: 48px; padding: 28px 20px; background: var(--charcoal); border: 1px solid var(--line); }
+.community { margin-top: 40px; padding: 24px 20px; background: var(--charcoal); border: 1px solid var(--line); }
 .community h2 { font-family: var(--font-display); font-weight: 400; font-size: 1.9rem; text-transform: uppercase; margin-bottom: 8px; }
-.comments-title { margin-top: 40px; }
+.comments-title { margin-top: 32px; }
 .avg { font-size: 1.05rem; margin-bottom: 16px; }
 .note { color: var(--grey); font-size: 0.8rem; margin-top: 10px; }
 .msg { margin-top: 12px; font-size: 0.9rem; }
 .msg.error { color: #e0a0a0; }
 .msg.ok { color: #b9d4b9; }
+.list-gap { margin-top: 20px; }
 
 /* Rating picker */
 .rate { max-width: 520px; }
@@ -33,7 +34,8 @@
 
 .score:focus-visible, .link:focus-visible, .field:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 
-.cform { display: grid; gap: 12px; margin-bottom: 28px; }
+/* Comment form (opens only after tapping "Add a comment") */
+.cform { display: grid; gap: 12px; animation: pop 0.18s ease both; }
 .field {
   width: 100%;
   padding: 13px 14px;
@@ -44,14 +46,16 @@
   font-size: 1rem;
 }
 textarea.field { resize: vertical; }
-.cform-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.cform-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .cform-row .note { margin-top: 0; }
+.cform-buttons { display: flex; gap: 8px; }
+.cform-buttons .btn { padding: 12px 18px; }
 .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-.clist { list-style: none; display: grid; gap: 14px; }
-.comment { padding: 16px; background: var(--bg); border: 1px solid var(--line); }
+.clist { list-style: none; display: grid; gap: 12px; margin-top: 20px; }
+.comment { padding: 14px 16px; background: var(--bg); border: 1px solid var(--line); }
 .comment-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
 .comment p { overflow-wrap: anywhere; }
 .link { margin-top: 8px; background: none; border: 0; color: var(--grey); font-family: inherit; font-size: 0.78rem; cursor: pointer; text-decoration: underline; }
@@ -62,12 +66,27 @@ textarea.field { resize: vertical; }
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: none; }
 }
-@media (min-width: 760px) {
-  .community { padding: 40px; }
+
+/* Tablet: stacked layout, so the picker can use one row of 10 */
+@media (min-width: 760px) and (max-width: 959px) {
+  .community { padding: 32px; }
   .scores { grid-template-columns: repeat(10, 1fr); }
   .rate { max-width: 640px; }
 }
+
+/* Desktop: this panel sits to the right of the video and scrolls on its own */
+@media (min-width: 960px) {
+  .community {
+    margin-top: 0;
+    padding: 24px;
+    max-height: calc(100vh - 108px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #2a2e36 transparent;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .rate-panel { animation: none; }
+  .rate-panel, .cform { animation: none; }
   .score { transition: none; }
 }
